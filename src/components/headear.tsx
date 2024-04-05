@@ -6,8 +6,8 @@ export function Header() {
     <div className="flex items-center gap-5 py-2">
       <img src={logo} alt="NLW" />
       <nav className="flex items-center gap-5">
-        <NavLink>Eventos</NavLink>
-        <NavLink>Participantes</NavLink>
+        <NavLink href="/eventos">Eventos</NavLink>
+        <NavLink href="/participantes">Participantes</NavLink>
       </nav>
     </div>
   );
