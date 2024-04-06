@@ -30,22 +30,33 @@ interface Attendee {
 export function AttendeeList() {
   const [searchInputValue, setSearchInputValue] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+  const [total, setTotal] = useState(0);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
 
   useEffect(() => {
-    fetch(
+    const url = new URL(
       "http://localhost:3333/events/9e9bd979-9d10-4915-b339-3786b1634f33/attendees"
-    )
+    );
+
+    url.searchParams.set("pageIndex", String(page - 1));
+
+    if (searchInputValue.length > 0) {
+      url.searchParams.set("query", searchInputValue);
+    }
+
+    fetch(url)
       .then((response) => response.json())
       .then((data) => {
         setAttendees(data.attendees);
+        setTotal(data.total);
       });
-  }, [page]);
+  }, [page, searchInputValue]);
 
-  const totalPages = Math.ceil(attendees.length / 10);
+  const totalPages = Math.ceil(total / 10);
 
   function onSearchInputChanged(event: ChangeEvent<HTMLInputElement>) {
     setSearchInputValue(event.target.value);
+    setPage(1);
   }
 
   function goToFirstPage() {
@@ -72,12 +83,10 @@ export function AttendeeList() {
           <Search className="size-4 text-emerald-200" />
           <input
             onChange={onSearchInputChanged}
-            className="bg-transparent flex-1 outline-none border-0 p-0 text-sm"
+            className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0"
             placeholder="Buscar participante..."
           />
         </div>
-
-        {searchInputValue}
       </div>
 
       <Table>
@@ -135,7 +144,7 @@ export function AttendeeList() {
         <tfoot>
           <tr>
             <TableCell colSpan={3}>
-              Mostrando 10 de {attendees.length} participantes
+              Mostrando {attendees.length} de {total} participantes
             </TableCell>
             <TableCell className="text-right" colSpan={3}>
               <div className="inline-flex items-center gap-8">
