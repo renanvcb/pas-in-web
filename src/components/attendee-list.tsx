@@ -14,15 +14,33 @@ import { Table } from "./table/table";
 import { TableHeader } from "./table/table-header";
 import { TableCell } from "./table/table-cell";
 import { TableRow } from "./table/table-row";
-import { ChangeEvent, useState } from "react";
-import { attendees } from "../data/attendees";
+import { ChangeEvent, useEffect, useState } from "react";
 
 dayjs.extend(relativetime);
 dayjs.locale("pt-br");
 
+interface Attendee {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+  checkedInAt: string | null;
+}
+
 export function AttendeeList() {
   const [searchInputValue, setSearchInputValue] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+
+  useEffect(() => {
+    fetch(
+      "http://localhost:3333/events/9e9bd979-9d10-4915-b339-3786b1634f33/attendees"
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setAttendees(data.attendees);
+      });
+  }, [page]);
 
   const totalPages = Math.ceil(attendees.length / 10);
 
@@ -79,7 +97,7 @@ export function AttendeeList() {
           </tr>
         </thead>
         <tbody>
-          {attendees.slice((page - 1) * 10, page * 10).map((attendee) => {
+          {attendees.map((attendee) => {
             return (
               <TableRow key={attendee.id}>
                 <TableCell>
@@ -98,7 +116,13 @@ export function AttendeeList() {
                   </div>
                 </TableCell>
                 <TableCell>{dayjs(attendee.createdAt).fromNow()}</TableCell>
-                <TableCell>{dayjs(attendee.checkedInAt).fromNow()}</TableCell>
+                <TableCell>
+                  {attendee.checkedInAt === null ? (
+                    <span className="text-zinc-400">Não fez checkin</span>
+                  ) : (
+                    dayjs(attendee.checkedInAt).fromNow()
+                  )}
+                </TableCell>
                 <TableCell>
                   <IconButton transparent>
                     <MoreHorizontal className="size-4" />
