@@ -28,7 +28,15 @@ interface Attendee {
 }
 
 export function AttendeeList() {
-  const [searchInputValue, setSearchInputValue] = useState<string>("");
+  const [search, setSearch] = useState(() => {
+    const url = new URL(window.location.toString());
+
+    if (url.searchParams.has("search")) {
+      return url.searchParams.get("search") ?? "";
+    }
+
+    return "";
+  });
   const [page, setPage] = useState(() => {
     const url = new URL(window.location.toString());
 
@@ -48,8 +56,8 @@ export function AttendeeList() {
 
     url.searchParams.set("pageIndex", String(page - 1));
 
-    if (searchInputValue.length > 0) {
-      url.searchParams.set("query", searchInputValue);
+    if (search.length > 0) {
+      url.searchParams.set("query", search);
     }
 
     fetch(url)
@@ -58,7 +66,17 @@ export function AttendeeList() {
         setAttendees(data.attendees);
         setTotal(data.total);
       });
-  }, [page, searchInputValue]);
+  }, [page, search]);
+
+  function setCurrentSearch(search: string) {
+    const url = new URL(window.location.toString());
+
+    url.searchParams.set("search", search);
+
+    window.history.pushState({}, "", url);
+
+    setSearch(search);
+  }
 
   function setCurrentPage(page: number) {
     const url = new URL(window.location.toString());
@@ -73,7 +91,7 @@ export function AttendeeList() {
   const totalPages = Math.ceil(total / 10);
 
   function onSearchInputChanged(event: ChangeEvent<HTMLInputElement>) {
-    setSearchInputValue(event.target.value);
+    setCurrentSearch(event.target.value);
     setCurrentPage(1);
   }
 
@@ -101,6 +119,7 @@ export function AttendeeList() {
           <Search className="size-4 text-emerald-200" />
           <input
             onChange={onSearchInputChanged}
+            value={search}
             className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0"
             placeholder="Buscar participante..."
           />
